@@ -5,9 +5,15 @@ import {
 } from '@angular/cdk/drag-drop';
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import {
+  TaskDialogComponent,
+  TaskDialogResult,
+} from './task-dialog/task-dialog.component';
 import { Task } from './task/task';
 import { TaskComponent } from './task/task.component';
 
@@ -16,7 +22,9 @@ import { TaskComponent } from './task/task.component';
   standalone: true,
   imports: [
     CommonModule,
+    MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatToolbarModule,
     MatIconModule,
     TaskComponent,
@@ -39,6 +47,25 @@ export class AppComponent {
 
   inProgress: Task[] = [];
   done: Task[] = [];
+
+  constructor(private dialog: MatDialog) {}
+
+  newTask(): void {
+    const dialogRef = this.dialog.open(TaskDialogComponent, {
+      width: '270px',
+      data: {
+        task: {},
+      },
+    });
+    dialogRef
+      .afterClosed()
+      .subscribe((result: TaskDialogResult | undefined) => {
+        if (!result) {
+          return;
+        }
+        this.todo.push(result.task);
+      });
+  }
 
   editTask(list: string, task: Task): void {}
 
