@@ -90,6 +90,23 @@
             ],
             "scripts": []
           }
+        },
+        "deploy": {
+          "builder": "@angular/fire:deploy",
+          "options": {
+            "version": 2
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "kanban-fire:build:production",
+              "serveTarget": "kanban-fire:serve:production"
+            },
+            "development": {
+              "buildTarget": "kanban-fire:build:development",
+              "serveTarget": "kanban-fire:serve:development"
+            }
+          },
+          "defaultConfiguration": "production"
         }
       }
     }

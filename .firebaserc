@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "kanbanfire-c1693": {
+      "hosting": {
+        "kanban-fire": [
+          "kanbanfire-c1693"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "kanbanfire-c1693"
+  }
+}
