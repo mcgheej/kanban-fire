@@ -20,13 +20,43 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import {
   TaskDialogComponent,
   TaskDialogResult,
 } from './task-dialog/task-dialog.component';
 import { Task, copyTaskWithoutId } from './task/task';
 import { TaskComponent } from './task/task.component';
+
+/**
+ *
+ * @param store
+ * @param list
+ * @returns
+ *
+ * Concerned that the subscription to collectionData here is never unsubscribed.
+ * As this is the app component in this case it probably doesn't matter but if
+ * this was a component acting as a route target that was instantiated and destroyed
+ * multiple times then perhaps some resources may leak. The encapsulated
+ * BehaviorSubject is ok as that only gets subscriptions via the async pipe.
+ */
+const getObservable = (store: Firestore, list: string) => {
+  const subject = new BehaviorSubject<Task[]>([]);
+  (
+    collectionData(collection(store, list), {
+      idField: 'id',
+    }) as Observable<Task[]>
+  ).subscribe({
+    next: (val: Task[]) => {
+      subject.next(val);
+    },
+    complete: () => console.log(`complete ${list}`),
+  });
+  // ).subscribe((val: Task[]) => {
+  //   subject.next(val);
+  // });
+  return subject;
+};
 
 @Component({
   selector: 'app-root',
@@ -48,15 +78,9 @@ export class AppComponent {
   private store = inject(Firestore);
   private dialog = inject(MatDialog);
 
-  todo = collectionData(collection(this.store, 'todo'), {
-    idField: 'id',
-  }) as Observable<Task[]>;
-  inProgress = collectionData(collection(this.store, 'inProgress'), {
-    idField: 'id',
-  }) as Observable<Task[]>;
-  done = collectionData(collection(this.store, 'done'), {
-    idField: 'id',
-  }) as Observable<Task[]>;
+  todo = getObservable(this.store, 'todo') as Observable<Task[]>;
+  inProgress = getObservable(this.store, 'inProgress') as Observable<Task[]>;
+  done = getObservable(this.store, 'done') as Observable<Task[]>;
 
   newTask(): void {
     const dialogRef = this.dialog.open(TaskDialogComponent, {
@@ -115,7 +139,6 @@ export class AppComponent {
         `${event.previousContainer.id}/${item.id}`
       );
       const collectionRef = collection(this.store, event.container.id);
-      console.log(item);
       runTransaction(this.store, () => {
         const promise = Promise.all([
           deleteDoc(docRef),
